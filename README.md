@@ -1,1 +1,1 @@
-# GeneratorFaktur
+# Invoice Generator
