@@ -1,0 +1,236 @@
+﻿@model InvoiceGenerator.Models.InvoiceData
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"> </script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"> </script>
+    <style>
+        .invoice-table {
+            border-collapse: collapse;
+        }
+
+        .invoice-tr{
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        .invoice-th{
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 6px 10px;
+        }
+
+        .invoice-th-row{
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 6px 10px;
+            font-weight: 300;
+        }
+
+        .invoice-th-summary{
+            border-collapse: collapse;
+            padding: 6px 10px;
+        }
+
+        .t-right{
+            text-align: right;
+        }
+        .t-light{
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body style="font-size: 13px; color: black">
+    <br class="mt-5"/>
+    <p> <b>Faktura numer </b> @Model.InvoiceNumber</p>
+    <span class="mt-2"> <b>Data wystawienia </b> @Model.IssueDate.ToShortDateString() </span><br />
+    <span> <b>Data sprzedaży </b> @Model.SoldDate.ToShortDateString() </span><br />
+    <span> <b>Termin płatności </b> @Model.IssueDate.AddMonths(3).ToShortDateString() </span><br />
+    <span> <b>Płatność </b> Przelew </span>
+    <hr style="height:1.5px;border-width:0;color:gray;background-color:gray" />
+
+    <table style="width: 100%">
+        <tr>
+            <th>Sprzedawca</th>
+            <th>Nabywca</th>
+        </tr>
+        <tr class="mt-2">
+            <th style="font-weight: lighter">
+                @Model.Seller.FullName<br />
+                <div style="margin-top: 7px">
+                    @Model.Seller.Address.Line1<br />
+                    @Model.Seller.Address.Line2, @Model.Buyer.Address.Country
+                </div>
+                NIP @Model.Seller.NIP
+
+            </th>
+            <th style="font-weight: lighter">
+                @Model.Buyer.FullName<br />
+                <div style="margin-top: 7px">
+                @Model.Buyer.Address.Line1<br />
+                @Model.Buyer.Address.Line2, @Model.Buyer.Address.Country
+                </div>
+                NIP @Model.Seller.NIP
+            </th>
+        </tr>
+    </table>
+
+    <table class="mt-4 invoice-table" style="width: 100%" id="items-table">
+        <thead>
+            <tr class="invoice-tr">
+                <th class="invoice-th" scope="col" style="width: 35px; text-align: center;">LP</th>
+                <th class="invoice-th" scope="col" style="margin-left: 3px;">Nazwa towaru/usługi</th>
+                <th class="invoice-th t-right" scope="col" style="width: 50px;"> Ilość</th>
+                <th class="invoice-th t-right" scope="col" style="width: 75px;"> Cena netto</th>
+                <th class="invoice-th t-right" scope="col" style="width: 75px;"> Wartość netto</th>
+                <th class="invoice-th t-right" scope="col" style="width: 60px;"> VAT %</th>
+                <th class="invoice-th t-right" scope="col" style="width: 60px;"> Wartość VAT</th>
+                <th class="invoice-th t-right" scope="col" style="width: 75px;"> Wartość<br /> brutto</th>
+             </tr>
+         </thead>
+            <tbody>
+            @{int i = 1;}
+            @{
+                decimal sumValue = 0;
+                decimal sumGrossValue = 0;
+                decimal sumVatValue = 0;
+                string currencyString = "";
+                if(Model.Currency == "EUR"){
+                    currencyString = "EUR";
+                }else if(Model.Currency == "PLN"){
+                    currencyString = "PLN";
+                }
+            }
+            
+            @foreach (var item in Model.InvoiceItems){
+                <tr class="invoice-tr" style="font-weight: 300;">
+                    @{
+                        decimal grossValue = 0;
+                        decimal itemValue = item.Cost * item.Quantity;
+                        decimal vatValue = itemValue * Model.VatRate/100;
+                        sumVatValue += vatValue;
+                        sumValue += itemValue;
+                        if (Model.VatRate != 0)
+                        {
+                            grossValue = itemValue + vatValue;
+                        }else{
+                            grossValue = itemValue;
+                        }
+
+                        sumGrossValue += grossValue;
+                    }
+                    <th class="invoice-th-row" scope="col" style="width: 35px; text-align: center;">@i</th>
+                    @{i++;}
+                    <th class="invoice-th-row" scope="col">@item.Name</th>
+                    <th class="invoice-th-row t-right" scope="col">@item.Quantity szt</th>
+                    @{
+                                        <th class="invoice-th-row t-right" scope="col"> @GetMoneyValue(item.Cost)</th>
+                    }
+                    @{
+                                        <th class="invoice-th-row t-right" scope="col"> @GetMoneyValue(itemValue) </th>
+                    }
+                    <th class="invoice-th-row t-right" scope="col">@Model.VatRate</th>
+                    <th class="invoice-th-row t-right" scope="col"> @GetMoneyValue(vatValue)</th>
+                    @{<th class="invoice-th-row t-right" scope="col">@GetMoneyValue(grossValue)</th>}
+                </tr>
+            }
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th class="invoice-th-summary t-right" style="font-weight: 300;">W tym</th>
+                <th class="invoice-th-summary t-right" style="font-weight: 300;">@GetMoneyValue(sumValue)</th>
+                <th class="invoice-th-summary t-right" style="font-weight: 300;">@Model.VatRate</th>
+                <th class="invoice-th-summary t-right" style="font-weight: 300;">@GetMoneyValue(sumVatValue)</th>
+                <th class="invoice-th-summary t-right" style="font-weight: 300;">@GetMoneyValue(sumGrossValue)</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th class="invoice-th-summary t-right">Razem</th>
+                <th class="invoice-th-summary t-right">@GetMoneyValue(sumValue)</th>
+                <th class="invoice-th-summary t-right">@Model.VatRate</th>
+                <th class="invoice-th-summary t-right">@GetMoneyValue(sumVatValue)</th>
+                <th class="invoice-th-summary t-right">@GetMoneyValue(sumGrossValue)</th>
+            </tr>
+            </tbody>
+        </table>
+        <div class="mt-3" style="float: right;">
+            <table>
+                <tbody>
+                    <tr>
+                        <th class="t-right" style="padding: 6px 10px;">Wartość netto</th>
+                    <th class="t-right" style="padding: 6px 10px; font-weight: 300; width: 150px">@GetMoneyValue(sumValue) @currencyString</th>
+                    </tr>
+                    <tr>
+                        <th class="t-right" style="padding: 6px 10px;">Wartość VAT</th>
+                    <th class="t-right" style="padding: 6px 10px; font-weight: 300; width: 150px">@GetMoneyValue(sumVatValue) @currencyString</th>
+                    </tr>
+                    <tr>
+                        <th class="t-right" style="padding: 6px 10px;">Wartość brutto</th>
+                    <th class="t-right" style="padding: 6px 10px; font-weight: 300; width: 150px">@GetMoneyValue(sumGrossValue) @currencyString</th>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4" style="clear: both;">
+            <table>
+                <tr >
+                <th style="width: 160px">Uwagi</th>
+                    <th class="t-light"></th>
+                </tr>
+                <tr>
+                <th style="width: 160px">Kwota opłacona</th>
+                <th class="t-light"> 0,00 @currencyString </th>
+                </tr>
+            <tr class="mt-5">
+                    <th  style="width: 160px">Do zapłaty</th>
+                    <th class="t-light mt-2">
+                    <span>@GetMoneyValue(sumGrossValue) @currencyString </span><br />
+                    <span> @GetAmountInWords(sumGrossValue)</span>
+                    </th>
+                </tr>
+            </table>
+        </div>
+
+        <table class="mt-5" style="width: 100%">
+            <tr>
+                <th>Imię i nazwisko odbiorcy</th>
+                <th>Imie i nazwisko wystawcy</th>
+            </tr>
+        </table>
+
+</body>
+</html>
+
+@{
+    @using System.Globalization
+    @using LiczbyNaSlowaNETCore
+
+    string GetMoneyValue(decimal value){
+        return value.ToString("N2", CultureInfo.CreateSpecificCulture("sv-SE"));
+    }
+
+
+    string GetAmountInWords(decimal amount){
+
+        var currency = Currency.PLN;
+
+        switch(Model.Currency){
+            case "EUR":
+                currency = Currency.EUR;
+                break;
+
+            case "USD":
+                currency = Currency.USD;
+                break;
+        }
+
+        return NumberToText.Convert(amount, currency);
+    }
+}
