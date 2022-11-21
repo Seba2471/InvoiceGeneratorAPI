@@ -1,4 +1,7 @@
+using InvoiceGenerator;
 using InvoiceGenerator.Entities;
+using InvoiceGenerator.Persistence;
+using InvoiceGenerator.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +21,44 @@ builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(BaseRepository<>));
+
+builder.Services.AddScoped(typeof(ITokenRepository<>), typeof(TokenRepository<>));
+
+//Authentication settings
+var jsonWebTokensSettings = new JsonWebTokensSettings();
+
+builder.Configuration.GetSection("JSONWebTokensSettings").Bind(jsonWebTokensSettings);
+builder.Services.AddSingleton(jsonWebTokensSettings);
+
 builder.Services
     .AddDbContext<InvoiceGeneratorContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvoiceGeneratorConnectionString")))
     .AddIdentityCore<User>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<InvoiceGeneratorContext>();
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    // Password settings
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 6;
+
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+
+    // SignIn settings
+    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedPhoneNumber = false;
+
+    // User settings
+    options.User.RequireUniqueEmail = true;
+});
 
 builder.Services
     .AddHttpContextAccessor()
@@ -36,9 +72,9 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            ValidIssuer = jsonWebTokensSettings.Issuer,
+            ValidAudience = jsonWebTokensSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jsonWebTokensSettings.AccessKey))
         };
     });
 
@@ -57,7 +93,9 @@ app.UseCors(builder => builder
     .AllowAnyHeader());
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapControllers();
 
