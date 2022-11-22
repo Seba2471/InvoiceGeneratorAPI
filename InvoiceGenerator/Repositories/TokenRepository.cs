@@ -37,7 +37,7 @@ namespace InvoiceGenerator.Repositories
                   _jsonWebTokensSettings.Audience, _jsonWebTokensSettings.AccessTokenDurationTimeInMinutes);
         }
 
-        public RefreshToken GenereateRefreshToken(T user)
+        public RefreshToken GenereateRefreshToken(T user, string userAgent)
         {
             var claims = new List<Claim>
             {
@@ -56,7 +56,8 @@ namespace InvoiceGenerator.Repositories
                 Expiration = DateTime.UtcNow.AddDays(_jsonWebTokensSettings.RefreshTokenDurationTimeInDay),
                 RefreshTokenValue = refreshToken,
                 Used = false,
-                UserId = user.Id
+                UserId = user.Id,
+                UserAgent = userAgent
             };
         }
 

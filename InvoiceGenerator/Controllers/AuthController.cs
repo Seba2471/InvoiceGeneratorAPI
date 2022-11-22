@@ -41,10 +41,9 @@ namespace InvoiceGenerator.Controllers
 
             var roles = await _userManager.GetRolesAsync(user);
 
-
             var accessToken = _tokenRepository.GenerateAccessToken(user, roles);
 
-            var refreshToken = _tokenRepository.GenereateRefreshToken(user);
+            var refreshToken = _tokenRepository.GenereateRefreshToken(user, Request.Headers.UserAgent);
 
             await _tokenRepository.AddAsync(refreshToken);
 

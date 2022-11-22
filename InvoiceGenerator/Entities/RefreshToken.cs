@@ -11,5 +11,6 @@ namespace InvoiceGenerator.Entities
         public bool Used { get; set; }
         public IdentityUser User { get; set; }
         public string UserId { get; set; }
+        public string UserAgent { get; set; }
     }
 }

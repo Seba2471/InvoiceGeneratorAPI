@@ -6,7 +6,7 @@ namespace InvoiceGenerator.Persistence
     public interface ITokenRepository<T> : IAsyncRepository<RefreshToken> where T : IdentityUser
     {
         string GenerateAccessToken(T user, IList<string> roles);
-        RefreshToken GenereateRefreshToken(T user);
+        RefreshToken GenereateRefreshToken(T user, string userAgent);
         Task<RefreshToken> GetByTokenValue(string refreshToken);
         bool ValidateRefreshToken(string refreshToken);
     }
