@@ -4,10 +4,10 @@ namespace InvoiceGenerator.Responses
 {
     public class NotValidateRequest
     {
-        public Dictionary<string, string[]> ValidationErrors { get; set; }
+        public Dictionary<string, string[]> Errors { get; set; }
         public NotValidateRequest(List<ValidationFailure> validationErrors)
         {
-            ValidationErrors = validationErrors
+            Errors = validationErrors
                 .Where(x => x != null)
                 .GroupBy(
                     x => x.PropertyName,

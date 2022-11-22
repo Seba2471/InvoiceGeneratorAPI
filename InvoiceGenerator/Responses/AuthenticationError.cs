@@ -4,11 +4,11 @@ namespace InvoiceGenerator.Responses
 {
     public class AuthenticationError
     {
-        public Dictionary<string, string[]> IdentityErrors { get; set; } = new Dictionary<string, string[]>();
+        public Dictionary<string, string[]> Errors { get; set; } = new Dictionary<string, string[]>();
 
         public AuthenticationError(List<IdentityError> identityErrors)
         {
-            IdentityErrors = identityErrors
+            Errors = identityErrors
                 .Where(x => x != null)
                 .GroupBy(
                     x => x.Code,
@@ -23,12 +23,12 @@ namespace InvoiceGenerator.Responses
 
         public AuthenticationError(IdentityError identityError)
         {
-            IdentityErrors.Add(identityError.Code, new[] { identityError.Description });
+            Errors.Add(identityError.Code, new[] { identityError.Description });
         }
 
         public AuthenticationError(string key, string value)
         {
-            IdentityErrors.Add(key, new[] { value });
+            Errors.Add(key, new[] { value });
         }
     }
 }

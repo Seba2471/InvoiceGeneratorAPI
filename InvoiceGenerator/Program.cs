@@ -34,7 +34,7 @@ builder.Services.AddSingleton(jsonWebTokensSettings);
 
 builder.Services
     .AddDbContext<InvoiceGeneratorContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvoiceGeneratorConnectionString")))
-    .AddIdentityCore<User>()
+    .AddIdentityCore<IdentityUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<InvoiceGeneratorContext>();
 

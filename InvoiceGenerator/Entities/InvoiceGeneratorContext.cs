@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InvoiceGenerator.Entities
 {
-    public class InvoiceGeneratorContext : IdentityDbContext<User>
+    public class InvoiceGeneratorContext : IdentityDbContext<IdentityUser>
     {
         public InvoiceGeneratorContext(DbContextOptions<InvoiceGeneratorContext> options) : base(options)
         {
@@ -16,7 +16,7 @@ namespace InvoiceGenerator.Entities
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<User>(entity =>
+            builder.Entity<IdentityUser>(entity =>
             {
                 entity.ToTable(name: "Users");
             });
