@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using InvoiceGenerator.Models;
+using Microsoft.AspNetCore.Mvc;
 
-namespace InvoiceGenerator.Models
+namespace InvoiceGenerator.Entities
 {
-    public class InvoiceData
+    public class Invoice
     {
         public string InvoiceNumber { get; set; }
         [BindProperty]
