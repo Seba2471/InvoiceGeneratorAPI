@@ -1,5 +1,5 @@
 using InvoiceGenerator;
-using InvoiceGenerator.Entities;
+using InvoiceGenerator.Persistance.EF;
 using InvoiceGenerator.Persistence;
 using InvoiceGenerator.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using InvoiceGenerator.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace InvoiceGenerator.Entities
+namespace InvoiceGenerator.Persistance.EF
 {
     public class InvoiceGeneratorContext : IdentityDbContext<IdentityUser>
     {
@@ -11,9 +12,19 @@ namespace InvoiceGenerator.Entities
         }
 
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Contractor> Contractors { get; set; }
+        public DbSet<Address> Addresses { get; set; }
+
+        public DbSet<InvoiceItem> InvoiceItems { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            builder.ApplyConfigurationsFromAssembly
+                (typeof(InvoiceGeneratorContext).Assembly);
+
+
             base.OnModelCreating(builder);
 
             builder.Entity<IdentityUser>(entity =>

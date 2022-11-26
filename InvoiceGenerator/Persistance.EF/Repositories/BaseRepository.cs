@@ -1,4 +1,4 @@
-﻿using InvoiceGenerator.Entities;
+﻿using InvoiceGenerator.Persistance.EF;
 using InvoiceGenerator.Persistence;
 using Microsoft.EntityFrameworkCore;
 
