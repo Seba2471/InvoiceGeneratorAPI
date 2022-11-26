@@ -1,5 +1,6 @@
 ﻿using InvoiceGenerator.Entities;
 using InvoiceGenerator.Persistence;
+using InvoiceGenerator.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -63,6 +64,17 @@ namespace InvoiceGenerator.Controllers
                 return BadRequest("Something went wrong");
             }
 
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetUserInvoice([FromQuery] PaginationRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.Sid);
+            var invoices = await _invoiceRepository.GetUserInvoiceById(request.PageNumber, request.PageSize, userId);
+
+
+            return Ok(invoices);
         }
     }
 }
