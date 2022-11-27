@@ -67,7 +67,7 @@ namespace InvoiceGenerator.Controllers
 
             if (!isOwner)
             {
-                return Unauthorized("Unauthorized");
+                return Forbid();
             }
 
 
@@ -81,6 +81,32 @@ namespace InvoiceGenerator.Controllers
             var pdf = await _generatePdf.GetPdfFromInvoiceData(invoiceData);
 
             return File(pdf, "application/pdf", $"{invoiceData.InvoiceNumber}.pdf");
+        }
+
+        [Authorize]
+        [HttpDelete("{invoiceId}")]
+        public async Task<IActionResult> DeleteInvoice([FromRoute] string invoiceId)
+        {
+
+            var userId = User.FindFirstValue(ClaimTypes.Sid);
+            var isOwner = await _invoiceRepository.IsOwner(invoiceId, userId);
+
+
+            if (!isOwner)
+            {
+                return Forbid();
+            }
+
+
+            Invoice invoice = new Invoice()
+            {
+                Id = Guid.Parse(invoiceId)
+            };
+
+            await _invoiceRepository.DeleteAsync(invoice);
+
+
+            return NoContent();
         }
     }
 }
