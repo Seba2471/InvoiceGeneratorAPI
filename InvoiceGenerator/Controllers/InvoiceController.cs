@@ -1,12 +1,11 @@
 ﻿using InvoiceGenerator.Entities;
 using InvoiceGenerator.Persistence;
 using InvoiceGenerator.Requests;
+using InvoiceGenerator.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Razor.Templating.Core;
 using System.Security.Claims;
-using WkHtmlToPdfDotNet;
 
 namespace InvoiceGenerator.Controllers
 {
@@ -16,41 +15,22 @@ namespace InvoiceGenerator.Controllers
     {
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IGeneratePdf _generatePdf;
 
-        public InvoiceController(IInvoiceRepository invoiceRepository, UserManager<IdentityUser> userManager)
+        public InvoiceController(IInvoiceRepository invoiceRepository, UserManager<IdentityUser> userManager, IGeneratePdf generatePdf)
         {
             _invoiceRepository = invoiceRepository;
             _userManager = userManager;
+            _generatePdf = generatePdf;
         }
 
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreatePdf([FromBody] Invoice invoiceData)
         {
-
-            var html = await RazorTemplateEngine.RenderAsync("~/Templates/InvoiceTemplate/InvoiceTemplate.cshtml", invoiceData);
-
-            var converter = new BasicConverter(new PdfTools());
-
-            var doc = new HtmlToPdfDocument()
-            {
-                GlobalSettings = {
-                    ColorMode = ColorMode.Color,
-                    Orientation = Orientation.Landscape,
-                    PaperSize = PaperKind.A4Rotated,
-    },
-                Objects = {
-                    new ObjectSettings() {
-                        PagesCount = true,
-                        HtmlContent = html,
-                        WebSettings = { DefaultEncoding = "utf-8" },
-                    }
-                }
-            };
-
             try
             {
-                byte[] pdf = converter.Convert(doc);
+                var pdf = await _generatePdf.GetPdfFromInvoiceData(invoiceData);
 
                 var userId = User.FindFirstValue(ClaimTypes.Sid);
 
@@ -68,13 +48,39 @@ namespace InvoiceGenerator.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetUserInvoice([FromQuery] PaginationRequest request)
+        public async Task<IActionResult> GetUserInvoice([FromQuery] Pagination request)
         {
             var userId = User.FindFirstValue(ClaimTypes.Sid);
             var invoices = await _invoiceRepository.GetUserInvoiceById(request.PageNumber, request.PageSize, userId);
 
 
             return Ok(invoices);
+        }
+
+        [Authorize]
+        [HttpGet("downolad/{invoiceId}", Name = "downoladPDf")]
+        public async Task<IActionResult> DownoladPdfById([FromRoute] string invoiceId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.Sid);
+            var isOwner = await _invoiceRepository.IsOwner(invoiceId, userId);
+
+
+            if (!isOwner)
+            {
+                return Unauthorized("Unauthorized");
+            }
+
+
+            var invoiceData = await _invoiceRepository.GetByIdWithIncludes(invoiceId);
+
+            if (invoiceData == null)
+            {
+                return NotFound();
+            }
+
+            var pdf = await _generatePdf.GetPdfFromInvoiceData(invoiceData);
+
+            return File(pdf, "application/pdf", $"{invoiceData.InvoiceNumber}.pdf");
         }
     }
 }

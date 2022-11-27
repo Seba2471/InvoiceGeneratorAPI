@@ -29,7 +29,7 @@ namespace InvoiceGenerator.Controllers
 
             if (!validatorResult.IsValid)
             {
-                return BadRequest(new NotValidateRequest(validatorResult.Errors));
+                return BadRequest(new NotValidate(validatorResult.Errors));
             }
 
             var user = await _userManager.FindByEmailAsync(request.Email);
@@ -67,7 +67,7 @@ namespace InvoiceGenerator.Controllers
 
             if (!validatorResult.IsValid)
             {
-                return BadRequest(new Responses.NotValidateRequest(validatorResult.Errors));
+                return BadRequest(new Responses.NotValidate(validatorResult.Errors));
             }
 
             var user = new IdentityUser { UserName = request.Email, Email = request.Email };

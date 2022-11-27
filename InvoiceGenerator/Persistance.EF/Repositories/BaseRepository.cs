@@ -33,9 +33,9 @@ namespace InvoiceGenerator.Repositories
                 .ToListAsync();
         }
 
-        public async Task<T> GetByIdAsync(int id)
+        public async Task<T> GetByIdAsync(string id)
         {
-            return await _dbContext.Set<T>().FindAsync(id);
+            return await _dbContext.Set<T>().FindAsync(Guid.Parse(id));
         }
 
         public async Task UpdateAsync(T entity)

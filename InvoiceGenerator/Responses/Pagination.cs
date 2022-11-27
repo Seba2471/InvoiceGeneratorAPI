@@ -1,6 +1,6 @@
 ﻿namespace InvoiceGenerator.Responses
 {
-    public class PaginationResponse<T>
+    public class Pagination<T>
     {
         public ICollection<T> Items { get; set; }
         public int TotalPages { get; set; }
@@ -8,7 +8,7 @@
         public int ItemsTo { get; set; }
         public int TotalItemsCount { get; set; }
 
-        public PaginationResponse(ICollection<T> items, int totalCount, int pageSize, int pageNumber)
+        public Pagination(ICollection<T> items, int totalCount, int pageSize, int pageNumber)
         {
             Items = items;
             TotalItemsCount = totalCount;

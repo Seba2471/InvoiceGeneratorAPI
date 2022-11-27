@@ -3,6 +3,7 @@ using InvoiceGenerator.Persistance.EF;
 using InvoiceGenerator.PersistanceEF.Repositories;
 using InvoiceGenerator.Persistence;
 using InvoiceGenerator.Repositories;
+using InvoiceGenerator.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,8 @@ builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(BaseRepository<>))
 builder.Services.AddScoped(typeof(ITokenRepository<>), typeof(TokenRepository<>));
 
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+
+builder.Services.AddScoped<IGeneratePdf, GeneratePdf>();
 
 //Authentication settings
 var jsonWebTokensSettings = new JsonWebTokensSettings();

@@ -3,7 +3,7 @@ using InvoiceGenerator.Requests;
 
 namespace InvoiceGenerator.Validators
 {
-    public class PaginationValidator : AbstractValidator<PaginationRequest>
+    public class PaginationValidator : AbstractValidator<Pagination>
     {
         public PaginationValidator()
         {
