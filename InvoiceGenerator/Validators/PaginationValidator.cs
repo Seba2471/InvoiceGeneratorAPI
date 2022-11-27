@@ -1,0 +1,21 @@
+﻿using FluentValidation;
+using InvoiceGenerator.Requests;
+
+namespace InvoiceGenerator.Validators
+{
+    public class PaginationValidator : AbstractValidator<Pagination>
+    {
+        public PaginationValidator()
+        {
+            RuleFor(q => q.PageSize)
+                .GreaterThan(0)
+                .NotNull()
+                .NotEmpty();
+
+            RuleFor(q => q.PageNumber)
+                .GreaterThan(0)
+                .NotNull()
+                .NotEmpty();
+        }
+    }
+}

@@ -1,18 +1,19 @@
-﻿using InvoiceGenerator.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using InvoiceGenerator.Entities;
 using Razor.Templating.Core;
 using WkHtmlToPdfDotNet;
 
-namespace InvoiceGenerator.Controllers
+namespace InvoiceGenerator.Services
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class HomeController : ControllerBase
+    public interface IGeneratePdf
     {
-        [HttpPost]
-        public async Task<IActionResult> CreatePdf([FromBody] InvoiceData invoiceData)
+        public Task<byte[]> GetPdfFromInvoiceData(Invoice invoice);
+    }
+
+    public class GeneratePdf : IGeneratePdf
+    {
+        public async Task<byte[]> GetPdfFromInvoiceData(Invoice invoice)
         {
-            var html = await RazorTemplateEngine.RenderAsync("~/Templates/InvoiceTemplate/InvoiceTemplate.cshtml", invoiceData);
+            var html = await RazorTemplateEngine.RenderAsync("~/Templates/InvoiceTemplate/InvoiceTemplate.cshtml", invoice);
 
             var converter = new BasicConverter(new PdfTools());
 
@@ -34,7 +35,7 @@ namespace InvoiceGenerator.Controllers
 
             byte[] pdf = converter.Convert(doc);
 
-            return File(pdf, "application/pdf", "test.pdf");
+            return pdf;
         }
     }
 }
