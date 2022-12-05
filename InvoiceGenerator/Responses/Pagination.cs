@@ -24,5 +24,14 @@
             }
             TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
         }
+
+        public Pagination(ICollection<T> items, int totalPages, int itemsFrom, int itemsTo, int totalItemsCount)
+        {
+            Items = items;
+            TotalPages = totalPages;
+            ItemsFrom = itemsFrom;
+            ItemsTo = itemsTo;
+            TotalItemsCount = totalItemsCount;
+        }
     }
 }

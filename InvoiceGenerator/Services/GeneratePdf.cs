@@ -1,6 +1,7 @@
 ﻿using InvoiceGenerator.Entities;
 using Razor.Templating.Core;
 using WkHtmlToPdfDotNet;
+using WkHtmlToPdfDotNet.Contracts;
 
 namespace InvoiceGenerator.Services
 {
@@ -11,11 +12,16 @@ namespace InvoiceGenerator.Services
 
     public class GeneratePdf : IGeneratePdf
     {
+        private readonly IConverter _converter;
+        public GeneratePdf(IConverter converter)
+        {
+            _converter = converter;
+        }
         public async Task<byte[]> GetPdfFromInvoiceData(Invoice invoice)
         {
             var html = await RazorTemplateEngine.RenderAsync("~/Templates/InvoiceTemplate/InvoiceTemplate.cshtml", invoice);
 
-            var converter = new BasicConverter(new PdfTools());
+            //var converter = new BasicConverter(new PdfTools());
 
             var doc = new HtmlToPdfDocument()
             {
@@ -33,7 +39,7 @@ namespace InvoiceGenerator.Services
                 }
             };
 
-            byte[] pdf = converter.Convert(doc);
+            byte[] pdf = _converter.Convert(doc);
 
             return pdf;
         }

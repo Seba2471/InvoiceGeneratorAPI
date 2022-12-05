@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using System.Reflection;
 using System.Text;
 using WkHtmlToPdfDotNet;
 using WkHtmlToPdfDotNet.Contracts;
@@ -33,6 +34,8 @@ builder.Services.AddScoped(typeof(ITokenRepository<>), typeof(TokenRepository<>)
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 
 builder.Services.AddScoped<IGeneratePdf, GeneratePdf>();
+
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 //Authentication settings
 var jsonWebTokensSettings = new JsonWebTokensSettings();
