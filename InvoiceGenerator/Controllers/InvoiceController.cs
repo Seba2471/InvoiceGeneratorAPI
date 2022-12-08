@@ -1,6 +1,9 @@
-﻿using InvoiceGenerator.Entities;
+﻿using AutoMapper;
+using InvoiceGenerator.Entities;
+using InvoiceGenerator.Models;
 using InvoiceGenerator.Persistence;
 using InvoiceGenerator.Requests;
+using InvoiceGenerator.Responses;
 using InvoiceGenerator.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -16,12 +19,14 @@ namespace InvoiceGenerator.Controllers
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IGeneratePdf _generatePdf;
+        private readonly IMapper _mapper;
 
-        public InvoiceController(IInvoiceRepository invoiceRepository, UserManager<IdentityUser> userManager, IGeneratePdf generatePdf)
+        public InvoiceController(IInvoiceRepository invoiceRepository, UserManager<IdentityUser> userManager, IGeneratePdf generatePdf, IMapper mapper)
         {
             _invoiceRepository = invoiceRepository;
             _userManager = userManager;
             _generatePdf = generatePdf;
+            _mapper = mapper;
         }
 
         [Authorize]
@@ -53,8 +58,9 @@ namespace InvoiceGenerator.Controllers
             var userId = User.FindFirstValue(ClaimTypes.Sid);
             var invoices = await _invoiceRepository.GetUserInvoiceById(request.PageNumber, request.PageSize, userId);
 
+            var invoicesDto = _mapper.Map<Pagination<InvoiceDto>>(invoices);
 
-            return Ok(invoices);
+            return Ok(invoicesDto);
         }
 
         [Authorize]
