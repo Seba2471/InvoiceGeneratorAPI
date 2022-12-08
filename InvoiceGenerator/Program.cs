@@ -17,37 +17,30 @@ using WkHtmlToPdfDotNet.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-builder.Services.AddRazorTemplating();
-builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-
+//Repository
 builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(BaseRepository<>));
-
 builder.Services.AddScoped(typeof(ITokenRepository<>), typeof(TokenRepository<>));
-
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 
+//PDF generator
+builder.Services.AddRazorTemplating();
+builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddScoped<IGeneratePdf, GeneratePdf>();
 
+//AutoMapper
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-//Authentication settings
-var jsonWebTokensSettings = new JsonWebTokensSettings();
-
-builder.Configuration.GetSection("JSONWebTokensSettings").Bind(jsonWebTokensSettings);
-builder.Services.AddSingleton(jsonWebTokensSettings);
-
+// Database connection
 builder.Services
     .AddDbContext<InvoiceGeneratorContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvoiceGeneratorConnectionString")))
     .AddIdentityCore<IdentityUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<InvoiceGeneratorContext>();
+
+//Authentication settings
+var jsonWebTokensSettings = new JsonWebTokensSettings();
+builder.Configuration.GetSection("JSONWebTokensSettings").Bind(jsonWebTokensSettings);
+builder.Services.AddSingleton(jsonWebTokensSettings);
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -95,9 +88,15 @@ builder.Services.AddAuthentication(options =>
             OnAuthenticationFailed = c =>
             {
                 c.NoResult();
-                c.Response.StatusCode = 500;
                 c.Response.ContentType = "text/plain";
-                return c.Response.WriteAsync(c.Exception.ToString());
+                if (c.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                {
+                    c.Response.StatusCode = 401;
+                    c.Response.Headers.Add("Token-Expired", "true");
+                    return c.Response.CompleteAsync();
+                }
+                c.Response.StatusCode = 500;
+                return c.Response.WriteAsync("Something went wrong");
             },
             OnChallenge = context =>
             {
@@ -117,6 +116,12 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+// Add services to the container.
+
+builder.Services.AddControllers();
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -158,14 +163,18 @@ if (app.Environment.IsDevelopment())
 app.UseCors(builder => builder
     .AllowAnyOrigin()
     .AllowAnyMethod()
-    .AllowAnyHeader());
+    .AllowAnyHeader()
+    .WithExposedHeaders("Token-Expired"));
+
 
 app.UseHttpsRedirection();
 
+
 app.UseAuthentication();
+app.UseRouting();
 app.UseAuthorization();
 
-
 app.MapControllers();
+
 
 app.Run();

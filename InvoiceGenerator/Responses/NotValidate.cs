@@ -5,6 +5,7 @@ namespace InvoiceGenerator.Responses
     public class NotValidate
     {
         public Dictionary<string, string[]> Errors { get; set; }
+
         public NotValidate(List<ValidationFailure> validationErrors)
         {
             Errors = validationErrors

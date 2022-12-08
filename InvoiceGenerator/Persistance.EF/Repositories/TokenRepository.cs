@@ -58,6 +58,7 @@ namespace InvoiceGenerator.Repositories
                 RefreshTokenValue = refreshToken,
                 Used = false,
                 UserId = user.Id,
+                UserName = user.UserName,
                 UserAgent = userAgent
             };
         }
@@ -94,6 +95,7 @@ namespace InvoiceGenerator.Repositories
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
+                notBefore: DateTime.UtcNow,
                 expires: DateTime.UtcNow.AddMinutes(durationInMinutes),
                 signingCredentials: credentials);
 
@@ -102,7 +104,9 @@ namespace InvoiceGenerator.Repositories
 
         public async Task<RefreshToken> GetByTokenValue(string refreshToken)
         {
-            var token = await _dbContext.RefreshTokens.FirstOrDefaultAsync(r => r.RefreshTokenValue == refreshToken);
+            var token = await _dbContext.RefreshTokens
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(r => r.RefreshTokenValue == refreshToken);
 
             return token;
         }
