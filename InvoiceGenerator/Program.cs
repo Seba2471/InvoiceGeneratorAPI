@@ -85,22 +85,17 @@ builder.Services.AddAuthentication(options =>
 
         options.Events = new JwtBearerEvents()
         {
-            OnAuthenticationFailed = c =>
-            {
-                c.NoResult();
-                c.Response.ContentType = "text/plain";
-                if (c.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                {
-                    c.Response.StatusCode = 401;
-                    c.Response.Headers.Add("Token-Expired", "true");
-                    return c.Response.CompleteAsync();
-                }
-                c.Response.StatusCode = 500;
-                return c.Response.WriteAsync("Something went wrong");
-            },
             OnChallenge = context =>
             {
                 context.HandleResponse();
+                if (context.AuthenticateFailure is not null)
+                {
+                    var tokenExpires = context.AuthenticateFailure.Message.Contains("Lifetime validation failed. The token is expired.");
+                    if (tokenExpires)
+                    {
+                        context.Response.Headers.Add("Token-Expired", "true");
+                    }
+                }
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 var result = JsonConvert.SerializeObject("401 Not authorized");
@@ -146,7 +141,7 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] { }
+            Array.Empty<string>()
         }
     });
 });
