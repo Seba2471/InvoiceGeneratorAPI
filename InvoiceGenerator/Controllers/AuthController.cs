@@ -61,6 +61,7 @@ namespace InvoiceGenerator.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] Requests.RegisterUser request)
         {
@@ -85,7 +86,21 @@ namespace InvoiceGenerator.Controllers
                     await _userManager.AddToRoleAsync(user, role.Name);
                 }
 
-                return Ok($"User {user.Email} created!");
+                var roles = await _userManager.GetRolesAsync(user);
+
+                var accessToken = _tokenRepository.GenerateAccessToken(user, roles);
+
+                var refreshToken = _tokenRepository.GenereateRefreshToken(user, Request.Headers.UserAgent);
+
+                await _tokenRepository.AddAsync(refreshToken);
+
+                var response = new Responses.Tokens
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken.RefreshTokenValue
+                };
+
+                return Ok(response);
             }
 
             if (result.Errors is not null)
@@ -98,6 +113,7 @@ namespace InvoiceGenerator.Controllers
 
 
         [HttpPost]
+        [AllowAnonymous]
         [Route("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshToken request)
         {

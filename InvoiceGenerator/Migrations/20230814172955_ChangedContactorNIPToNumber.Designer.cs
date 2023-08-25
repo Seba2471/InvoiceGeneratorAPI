@@ -4,6 +4,7 @@ using InvoiceGenerator.Persistance.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InvoiceGenerator.Migrations
 {
     [DbContext(typeof(InvoiceGeneratorContext))]
-    partial class InvoiceGeneratorContextModelSnapshot : ModelSnapshot
+    [Migration("20230814172955_ChangedContactorNIPToNumber")]
+    partial class ChangedContactorNIPToNumber
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
