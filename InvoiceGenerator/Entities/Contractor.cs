@@ -8,7 +8,7 @@ namespace InvoiceGenerator.Entities
         public Guid Id { get; set; }
         public string FullName { get; set; }
         public Address Address { get; set; }
-        public string NIP { get; set; }
+        public int NIP { get; set; }
         [JsonIgnore]
         public IEnumerable<Invoice> InvoicesBuyer { get; set; }
         [JsonIgnore]

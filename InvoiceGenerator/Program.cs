@@ -159,7 +159,9 @@ app.UseCors(builder => builder
     .AllowAnyOrigin()
     .AllowAnyMethod()
     .AllowAnyHeader()
-    .WithExposedHeaders("Token-Expired"));
+.WithExposedHeaders("Token-Expired"));
+
+
 
 
 app.UseHttpsRedirection();
